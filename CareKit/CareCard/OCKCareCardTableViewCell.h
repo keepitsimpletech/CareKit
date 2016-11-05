@@ -52,6 +52,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (nonatomic, weak) id<OCKCareCardCellDelegate> delegate;
 
+- (void)setUpConstraints;
+
 @end
 
 

@@ -43,6 +43,7 @@
 // Care Card
 #import <CareKit/OCKCareCardViewController.h>
 #import <CareKit/OCKCareCardDetailViewController.h>
+#import <CareKit/OCKCareCardTableViewCell.h>
 
 // Symptom Tracker
 #import <CareKit/OCKSymptomTrackerViewController.h>

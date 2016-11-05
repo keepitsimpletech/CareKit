@@ -29,6 +29,7 @@
  */
 
 
+#import <CareKit/CareKit.h>
 #import "OCKTableViewCell.h"
 
 

@@ -85,7 +85,7 @@ NS_ASSUME_NONNULL_BEGIN
 OCK_CLASS_AVAILABLE
 @interface OCKCarePlanStore : NSObject
 
-- (instancetype)init NS_UNAVAILABLE;
+- (instancetype)init NS_DESIGNATED_INITIALIZER;
 
 /**
  The initializer requires a local directory URL.

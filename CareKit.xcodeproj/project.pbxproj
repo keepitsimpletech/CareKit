@@ -102,6 +102,8 @@
 		24EA9FCA1C9A3D420036028E /* OCKHeartView.m in Sources */ = {isa = PBXBuildFile; fileRef = 24EA9FAB1C9A3D420036028E /* OCKHeartView.m */; };
 		24F8E4761C934FEE003B77BD /* OCKDefines_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 24F8E4741C934FEE003B77BD /* OCKDefines_Private.h */; };
 		24F8E47B1C93515A003B77BD /* CareKit.strings in Resources */ = {isa = PBXBuildFile; fileRef = 24F8E47D1C93515A003B77BD /* CareKit.strings */; };
+		403A0AFA1E38688200F2E068 /* HealthSteps.m in Sources */ = {isa = PBXBuildFile; fileRef = 403A0AF81E38688200F2E068 /* HealthSteps.m */; };
+		403A0AFD1E38695500F2E068 /* HealthSteps.h in Headers */ = {isa = PBXBuildFile; fileRef = 403A0AF71E38688200F2E068 /* HealthSteps.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5A6F95081D625A590011A97A /* CareKitContactTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A6F95071D625A590011A97A /* CareKitContactTests.m */; };
 		5A9D2C931D5E432B00D0F13B /* OCKContactInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 5A9D2C911D5E432B00D0F13B /* OCKContactInfo.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		5A9D2C941D5E432B00D0F13B /* OCKContactInfo.m in Sources */ = {isa = PBXBuildFile; fileRef = 5A9D2C921D5E432B00D0F13B /* OCKContactInfo.m */; };
@@ -263,6 +265,8 @@
 		24F8E49C1C93521C003B77BD /* id */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = id; path = id.lproj/CareKit.strings; sourceTree = "<group>"; };
 		24F8E49D1C93521F003B77BD /* ms */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ms; path = ms.lproj/CareKit.strings; sourceTree = "<group>"; };
 		24F8E49E1C935224003B77BD /* vi */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = vi; path = vi.lproj/CareKit.strings; sourceTree = "<group>"; };
+		403A0AF71E38688200F2E068 /* HealthSteps.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HealthSteps.h; sourceTree = "<group>"; };
+		403A0AF81E38688200F2E068 /* HealthSteps.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = HealthSteps.m; sourceTree = "<group>"; };
 		5A6F95071D625A590011A97A /* CareKitContactTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CareKitContactTests.m; sourceTree = "<group>"; };
 		5A9D2C911D5E432B00D0F13B /* OCKContactInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OCKContactInfo.h; sourceTree = "<group>"; };
 		5A9D2C921D5E432B00D0F13B /* OCKContactInfo.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OCKContactInfo.m; sourceTree = "<group>"; };
@@ -584,6 +588,15 @@
 			name = Localization;
 			sourceTree = "<group>";
 		};
+		403A0AFB1E38688500F2E068 /* HealthSteps */ = {
+			isa = PBXGroup;
+			children = (
+				403A0AF71E38688200F2E068 /* HealthSteps.h */,
+				403A0AF81E38688200F2E068 /* HealthSteps.m */,
+			);
+			name = HealthSteps;
+			sourceTree = "<group>";
+		};
 		8605A5B01C4F04EC00DD65FF = {
 			isa = PBXGroup;
 			children = (
@@ -609,6 +622,7 @@
 			children = (
 				8605A5BD1C4F04EC00DD65FF /* CareKit.h */,
 				8677EE241C97771A00588CD6 /* CareKit_Private.h */,
+				403A0AFB1E38688500F2E068 /* HealthSteps */,
 				8677EDF51C9775EB00588CD6 /* CarePlan */,
 				24EA9F921C9A3D420036028E /* CareCard */,
 				242DBA811C9F7F8700529386 /* SymptomTracker */,
@@ -744,6 +758,7 @@
 				86EA9A4E1C9C644E00B93BB1 /* OCKDocument.h in Headers */,
 				8677EE111C9775EB00588CD6 /* OCKCarePlanEvent.h in Headers */,
 				241707D91C9A3AB7005D7123 /* OCKInsightsTableViewHeaderView.h in Headers */,
+				403A0AFD1E38695500F2E068 /* HealthSteps.h in Headers */,
 				8605A5BE1C4F04EC00DD65FF /* CareKit.h in Headers */,
 				241707C31C9A3AB7005D7123 /* OCKBarChart.h in Headers */,
 				86EA9A501C9C644E00B93BB1 /* OCKHTMLPDFWriter.h in Headers */,
@@ -947,6 +962,7 @@
 				248929851C90E70100EBBE1F /* OCKContactSharingTableViewCell.m in Sources */,
 				8677EE121C9775EB00588CD6 /* OCKCarePlanEvent.m in Sources */,
 				242DBA991C9F7F8700529386 /* OCKSymptomTrackerWeekView.m in Sources */,
+				403A0AFA1E38688200F2E068 /* HealthSteps.m in Sources */,
 				241707D41C9A3AB7005D7123 /* OCKInsightsChartTableViewCell.m in Sources */,
 				24EA9FB71C9A3D420036028E /* OCKCareCardDetailHeaderView.m in Sources */,
 				5A9D2C941D5E432B00D0F13B /* OCKContactInfo.m in Sources */,

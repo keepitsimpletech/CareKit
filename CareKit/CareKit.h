@@ -64,3 +64,6 @@
 
 // PDF
 #import <CareKit/OCKDocument.h>
+
+// HealthSteps
+#import <CareKit/HealthSteps.h>

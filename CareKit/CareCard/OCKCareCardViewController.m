@@ -222,7 +222,7 @@
 - (void)setMaskImage:(UIImage *)maskImage {
     _maskImage = maskImage;
     if (!_maskImage) {
-        _maskImage = [UIImage imageNamed:@"heart" inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:nil];
+        _maskImage = [UIImage imageNamed:@"heart" inBundle:[NSBundle bundleForClass:[OCKCareCardViewController class]] compatibleWithTraitCollection:nil];
     }
     _headerView.heartView.maskImage = _maskImage;
 }
@@ -230,7 +230,7 @@
 - (void)setSmallMaskImage:(UIImage *)smallMaskImage {
     _smallMaskImage = smallMaskImage;
     if (!_smallMaskImage) {
-        _smallMaskImage = [UIImage imageNamed:@"heart-small" inBundle:[NSBundle bundleForClass:[self class]] compatibleWithTraitCollection:nil];
+        _smallMaskImage = [UIImage imageNamed:@"heart-small" inBundle:[NSBundle bundleForClass:[OCKCareCardViewController class]] compatibleWithTraitCollection:nil];
     }
     _weekViewController.careCardWeekView.smallMaskImage = _smallMaskImage;
 }

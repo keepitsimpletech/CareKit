@@ -78,8 +78,7 @@ static NSString * const OCKAttributeNameDayIndex = @"numberOfDaysSinceStart";
 }
 
 - (instancetype)init {
-    OCKThrowMethodUnavailableException();
-    return nil;
+    return self;
 }
 
 - (instancetype)initWithPersistenceDirectoryURL:(NSURL *)url {

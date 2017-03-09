@@ -361,6 +361,11 @@
     return self.delegate && [self.delegate respondsToSelector:@selector(careCardViewController:didSelectRowWithInterventionActivity:)];
 }
 
+- (void)reloadCareCardTableViewCell:(OCKCareCardTableViewCell *)cell {
+    [self.tableView beginUpdates];
+    [self.tableView endUpdates];
+}
+
 
 #pragma mark - OCKWeekViewDelegate
 
@@ -426,6 +431,7 @@
                 OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
                 cell.interventionEvents = events;
                 cell.showEdgeIndicator = cell.showEdgeIndicator;
+                [self reloadCareCardTableViewCell:cell];
             }
             break;
         }

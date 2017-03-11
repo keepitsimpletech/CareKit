@@ -549,7 +549,7 @@ NSString *_OCKAccessibilityStringForVariablesWithVariadics(id firstArgument, va_
     NSMutableString *axString = [NSMutableString string];
     
     if (firstArgument != nil) {
-        [axString appendString:[firstArgument accessibilityLabel]];
+        [axString appendString:[NSString stringWithFormat:@"%@", [firstArgument accessibilityLabel]]];
     }
     
     BOOL done = NO;

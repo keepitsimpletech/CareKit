@@ -103,7 +103,7 @@ NS_ASSUME_NONNULL_BEGIN
  It includes a master view and a detail view. Therefore, it must be embedded inside a `UINavigationController`.
  */
 OCK_CLASS_AVAILABLE
-@interface OCKCareCardViewController : UIViewController
+@interface OCKCareCardViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 
 - (instancetype)init NS_UNAVAILABLE;
 

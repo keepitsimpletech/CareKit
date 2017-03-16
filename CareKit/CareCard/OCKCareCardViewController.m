@@ -102,7 +102,7 @@
     
     self.selectedDate = [NSDateComponents ock_componentsWithDate:[NSDate date] calendar:_calendar];
     
-    _tableView.estimatedRowHeight = 120.0;
+    _tableView.estimatedRowHeight = 90.0;
     _tableView.rowHeight = UITableViewAutomaticDimension;
     _tableView.estimatedSectionHeaderHeight = 100.0;
     _tableView.sectionHeaderHeight = UITableViewAutomaticDimension;

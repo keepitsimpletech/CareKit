@@ -131,6 +131,13 @@ OCK_CLASS_AVAILABLE
 @property (nonatomic, weak, nullable) id<OCKCareCardViewControllerDelegate> delegate;
 
 /**
+ The currently selected date.
+ 
+ This value defaults to the current date.
+ */
+@property (nonatomic, readonly) NSDateComponents *selectedDate;
+
+/**
  The last intervention activity selected by the user.
  
  This value is nil if no intervention activity has been selected yet.

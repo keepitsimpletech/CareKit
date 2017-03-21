@@ -48,7 +48,7 @@
 
 @interface OCKCareCardViewController() <OCKWeekViewDelegate, OCKCarePlanStoreDelegate, OCKCareCardCellDelegate, UIPageViewControllerDelegate, UIPageViewControllerDataSource, UIViewControllerPreviewingDelegate>
 
-@property (nonatomic) NSDateComponents *selectedDate;
+@property (nonatomic, readwrite) NSDateComponents *selectedDate;
 
 @end
 
@@ -421,6 +421,10 @@
 #pragma mark - OCKCarePlanStoreDelegate
 
 - (void)carePlanStore:(OCKCarePlanStore *)store didReceiveUpdateOfEvent:(OCKCarePlanEvent *)event {
+    if (![event.date isEqualToDate:self.selectedDate]) {
+        return;
+    }
+    
     for (NSMutableArray<OCKCarePlanEvent *> *events in _events) {
         if ([events.firstObject.activity.identifier isEqualToString:event.activity.identifier]) {
             if (events[event.occurrenceIndexOfDay].numberOfDaysSinceStart == event.numberOfDaysSinceStart) {
@@ -437,7 +441,7 @@
         }
     }
     
-    if ([event.date isInSameWeekAsDate: self.selectedDate]) {
+    if ([event.date isInSameWeekAsDate:self.selectedDate]) {
         [self updateWeekView];
     }
 }

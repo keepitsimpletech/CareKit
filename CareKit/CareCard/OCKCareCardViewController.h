@@ -135,7 +135,7 @@ OCK_CLASS_AVAILABLE
  
  This value defaults to the current date.
  */
-@property (nonatomic, readonly) NSDateComponents *selectedDate;
+@property (nonatomic, readwrite) NSDateComponents *selectedDate;
 
 /**
  The last intervention activity selected by the user.

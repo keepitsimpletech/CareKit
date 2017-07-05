@@ -419,28 +419,26 @@
 #pragma mark - OCKCarePlanStoreDelegate
 
 - (void)carePlanStore:(OCKCarePlanStore *)store didReceiveUpdateOfEvent:(OCKCarePlanEvent *)event {
-    if (![event.date isEqualToDate:self.selectedDate]) {
-        return;
-    }
-    
-    for (NSMutableArray<OCKCarePlanEvent *> *events in _events) {
-        if ([events.firstObject.activity.identifier isEqualToString:event.activity.identifier]) {
-            if (events[event.occurrenceIndexOfDay].numberOfDaysSinceStart == event.numberOfDaysSinceStart) {
-                [events replaceObjectAtIndex:event.occurrenceIndexOfDay withObject:event];
-                [self updateHeaderView];
-                
-                NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_events indexOfObject:events] inSection:0];
-                OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
-                cell.interventionEvents = events;
-                cell.showEdgeIndicator = cell.showEdgeIndicator;
-                [self reloadCareCardTableViewCell:cell];
-            }
-            break;
-        }
-    }
-    
     if ([event.date isInSameWeekAsDate:self.selectedDate]) {
         [self updateWeekView];
+    }
+    
+    if ([event.date isEqualToDate:self.selectedDate]) {
+        for (NSMutableArray<OCKCarePlanEvent *> *events in _events) {
+            if ([events.firstObject.activity.identifier isEqualToString:event.activity.identifier]) {
+                if (events[event.occurrenceIndexOfDay].numberOfDaysSinceStart == event.numberOfDaysSinceStart) {
+                    [events replaceObjectAtIndex:event.occurrenceIndexOfDay withObject:event];
+                    [self updateHeaderView];
+                    
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_events indexOfObject:events] inSection:0];
+                    OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
+                    cell.interventionEvents = events;
+                    cell.showEdgeIndicator = cell.showEdgeIndicator;
+                    [self reloadCareCardTableViewCell:cell];
+                }
+                break;
+            }
+        }
     }
 }
 

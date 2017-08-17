@@ -1,5 +1,5 @@
 /*
- Copyright (c) 2016, Apple Inc. All rights reserved.
+ Copyright (c) 2017, Apple Inc. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -46,7 +46,7 @@ class InterfaceController: WKInterfaceController {
     
     @IBOutlet var tableView: WKInterfaceTable!
         
-    let session = WCSession.default()
+    let session = WCSession.default
     var activities = [String : WCKActivity]()
     var activityOrder = [String]()
     var activityRowIndices = [String : Int]()
@@ -55,15 +55,15 @@ class InterfaceController: WKInterfaceController {
     
     override func awake(withContext context: Any?) {
         super.awake(withContext: context)
-        session.delegate = self
-        session.activate()
+        session().delegate = self
+        session().activate()
     }
     
     override func willActivate() {
         self.setTitle("")
 
-        if session.activationState != .activated {
-            session.activate()
+        if session().activationState != .activated {
+            session().activate()
         } else {
             loadData()
         }
@@ -73,7 +73,7 @@ class InterfaceController: WKInterfaceController {
         self.setTitle("")
         loaderGroup.setHidden(false)
         loaderImage.startAnimating()
-        loaderLabel.setText("Loading\nCare Card")
+        loaderLabel.setText("Loading\nCare Contents")
         activities.removeAll()
         activityOrder.removeAll()
         activityRowIndices.removeAll()
@@ -84,7 +84,7 @@ class InterfaceController: WKInterfaceController {
     }
     
     func didLosePhoneConnection() {
-        guard session.activationState != .activated else {
+        guard session().activationState != .activated else {
             return
         }
         
@@ -99,6 +99,7 @@ class InterfaceController: WKInterfaceController {
         tableView.removeRows(at: IndexSet.init(integersIn: 0..<tableView.numberOfRows))
         tableView.setHidden(true)
         updateComplications(withCompletionPercentage: nil)
+        updateComplications(withComplicationGlyphType: "Image Unavailable")
     }
     
     
@@ -142,7 +143,8 @@ class InterfaceController: WKInterfaceController {
     }
     
     func updateEventButton(forActivityIdentifier activityIdentifier: String, eventIndex: Int) {
-        if activities.keys.contains(activityIdentifier) {
+        
+        if (activities.keys.contains(activityIdentifier) && (activities[activityIdentifier]?.type == .intervention)) {
         let eventRowIndex = activityRowIndices[activityIdentifier]! + 1 + getRowIndex(ofEventIndex: eventIndex)
         let eventState = activities[activityIdentifier]!.eventsForToday[eventIndex]!.state
         
@@ -151,8 +153,7 @@ class InterfaceController: WKInterfaceController {
         }
         }
     }
-    
-    func updateAllEventButtons() {
+        func updateAllEventButtons() {
         for (identifier, activity) in activities {
             for rowIndex in 0...getRowIndex(ofEventIndex: activity.eventsForToday.count - 1) {
                 if let row = tableView.rowController(at: activityRowIndices[identifier]! + 1 + rowIndex) as? EventRow {
@@ -194,9 +195,20 @@ class InterfaceController: WKInterfaceController {
         }
     }
     
+    func updateComplications(withComplicationGlyphType glyphType: String) {
+        let defaults = UserDefaults.standard
+        if (glyphType != "Image Unavailable") {
+            defaults.set(glyphType, forKey: "glyphType")
+        }
+        let server = CLKComplicationServer.sharedInstance()
+        for complication in server.activeComplications! {
+            server.reloadTimeline(for: complication)
+        }
+    }
+    
     func getCompletionPercentage() -> Int {
-        let eventsComplete = self.activities.values.map({$0.getNumberOfCompletedEvents()}).reduce(0, +)
-        let eventsTotal = self.activities.values.map({$0.eventsForToday.count}).reduce(0, +)
+        let eventsComplete = self.activities.values.filter({!$0.isOptional!}).map({$0.getNumberOfCompletedEvents()}).reduce(0, +)
+        let eventsTotal = self.activities.values.filter({!$0.isOptional!}).map({$0.eventsForToday.count}).reduce(0, +)
         
         if eventsTotal == 0 {
             return 0
@@ -217,7 +229,7 @@ class InterfaceController: WKInterfaceController {
     
     func updateDataStoreEvent(withActivityIdentifier activityIdentifier : String, atIndex eventIndex : Int, toCompletedState completedState : Bool) {
         
-        if !session.isReachable {
+        if !session().isReachable {
             didLosePhoneConnection()
             return
         }
@@ -234,7 +246,7 @@ class InterfaceController: WKInterfaceController {
         updateComplications(withCompletionPercentage: nil)
         
         encoder.finishEncoding()
-        session.sendMessageData(data as Data, replyHandler: {data in
+        session().sendMessageData(data as Data, replyHandler: {data in
             let decoder = NSKeyedUnarchiver(forReadingWith: data)
             if decoder.decodeBool(forKey: "success") {
             } else {
@@ -250,8 +262,8 @@ class InterfaceController: WKInterfaceController {
     }
     
     func messagingErrorHandler(_ error : Error) {
-        NSLog("error: \(error)\nsession reachable = \(session.isReachable)")
-        if session.activationState != .activated {
+        NSLog("error: \(error)\nsession reachable = \(session().isReachable)")
+        if session().activationState != .activated {
             didLosePhoneConnection()
         } else {
             loadData()
@@ -266,12 +278,12 @@ class InterfaceController: WKInterfaceController {
     // MARK: Fetching Data
     
     func getAllData() {
-        if session.activationState == .activated {
+        if session().activationState == .activated {
             let data = NSMutableData()
             let encoder = NSKeyedArchiver(forWritingWith: data)
             encoder.encode("getAllData", forKey: "type")
             encoder.finishEncoding()
-            session.sendMessageData(data as Data, replyHandler: {(data) in
+            session().sendMessageData(data as Data, replyHandler: {(data) in
                 let decoder = NSKeyedUnarchiver(forReadingWith: data)
                 defer {
                     decoder.finishDecoding()
@@ -342,9 +354,41 @@ extension InterfaceController: WCSessionDelegate {
             return
         }
         
+        guard let glyphType = applicationContext["glyphType"] as? String else {
+            return
+        }
+        
         let defaults = UserDefaults.standard
         defaults.set(completionPercentage, forKey: "currentCompletionPercentage")
         defaults.set(eventsRemaining, forKey: "eventsRemaining")
+        defaults.set(glyphType, forKey: "glyphType")
+        
+        let server = CLKComplicationServer.sharedInstance()
+        for complication in server.activeComplications! {
+            server.reloadTimeline(for: complication)
+        }
+    }
+    
+    func session(_ session: WCSession, didReceiveUserInfo userInfo: [String : Any] = [:]) {
+        guard let glyphType = userInfo["glyphType"] as? String else{
+            return
+        }
+        
+        guard let glyphTintColor = userInfo["glyphTintColor"] as? [CGFloat] else {
+            return
+        }
+        
+        guard let glyphImageName = userInfo["glyphImageName"] as? String else {
+            return
+        }
+        
+        let defaults = UserDefaults.standard
+        defaults.set(glyphType, forKey: "glyphType")
+        defaults.set(glyphTintColor, forKey: "glyphTintColor")
+        
+        if (glyphType == "Custom") {
+            defaults.set(glyphImageName, forKey: "glyphImageName")
+        }
         
         let server = CLKComplicationServer.sharedInstance()
         for complication in server.activeComplications! {
@@ -385,7 +429,9 @@ extension InterfaceController: WCSessionDelegate {
         }
         
         for newIdentifier in newActivities {
+            if (self.activities[newIdentifier]!.type == .intervention) {
             appendActivityToTable(self.activities[newIdentifier]!)
+            }
         }
     }
     
@@ -402,7 +448,9 @@ extension InterfaceController: WCSessionDelegate {
         let newActivity = WCKActivity.init(interventionWithIdentifier: activityDictionary["identifier"] as! String,
                                            title: activityDictionary["title"] as! String,
                                            text: activityDictionary["text"] as? String,
+                                           isIntervention: activityDictionary["isIntervention"] as? Bool,
                                            tintColor: tintColor,
+                                           isOptional: activityDictionary["isOptional"] as? Bool,
                                            numberOfEventsForToday: activityDictionary["numberOfEventsForToday"] as! UInt)
         
         let new = !self.activities.keys.contains(newActivity!.identifier)

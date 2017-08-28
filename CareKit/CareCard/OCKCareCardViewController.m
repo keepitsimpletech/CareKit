@@ -61,7 +61,6 @@
     NSCalendar *_calendar;
     NSMutableArray *_constraints;
     NSMutableArray *_sectionTitles;
-    NSMutableArray<NSMutableArray <NSMutableArray <OCKCarePlanEvent *> *> *> *_tableViewData;
     NSString *_otherString;
     NSString *_optionalString;
 }
@@ -329,8 +328,6 @@
                               [self.delegate careCardViewController:self willDisplayEvents:[_events copy] dateComponents:_selectedDate];
                           }
                           
-                          [self createGroupedEventDictionaryForEvents:_events];
-                          
                           [self updateHeaderView];
                           [self updateWeekView];
                           [_tableView reloadData];
@@ -416,7 +413,7 @@
 }
 
 - (OCKCarePlanActivity *)activityForIndexPath:(NSIndexPath *)indexPath {
-    return _tableViewData[indexPath.section][indexPath.row].firstObject.activity;
+    return _events[indexPath.row].firstObject.activity;
 }
 
 - (BOOL)delegateCustomizesRowSelection {
@@ -434,62 +431,6 @@
     }
     
     return customImageToReturn;
-}
-
-- (void)createGroupedEventDictionaryForEvents:(NSArray<NSArray<OCKCarePlanEvent *> *> *)events {
-    NSMutableDictionary *groupedEvents = [NSMutableDictionary new];
-    
-    for (NSArray<OCKCarePlanEvent *> *activityEvents in events) {
-        OCKCarePlanEvent *firstEvent = activityEvents.firstObject;
-        NSString *groupIdentifier = firstEvent.activity.groupIdentifier ? firstEvent.activity.groupIdentifier : _otherString;
-        
-        if (firstEvent.activity.optional) {
-            groupIdentifier = _optionalString;
-        }
-        
-        if (groupedEvents[groupIdentifier]) {
-            NSMutableArray<NSArray *> *objects = [groupedEvents[groupIdentifier] mutableCopy];
-            [objects addObject:activityEvents];
-            groupedEvents[groupIdentifier] = objects;
-        } else {
-            NSMutableArray<NSArray *> *objects = [[NSMutableArray alloc] initWithArray:activityEvents];
-            groupedEvents[groupIdentifier] = @[objects];
-        }
-    }
-    
-    NSMutableArray *sortedKeys = [[groupedEvents.allKeys sortedArrayUsingSelector:@selector(compare:)] mutableCopy];
-    if ([sortedKeys containsObject:_otherString]) {
-        [sortedKeys removeObject:_otherString];
-        [sortedKeys addObject:_otherString];
-    }
-    
-    if ([sortedKeys containsObject:_optionalString]) {
-        [sortedKeys removeObject:_optionalString];
-        [sortedKeys addObject:_optionalString];
-    }
-    
-    _sectionTitles = [sortedKeys copy];
-    
-    NSMutableArray *array = [NSMutableArray new];
-    for (NSString *key in _sectionTitles) {
-        NSMutableArray *groupArray = [NSMutableArray new];
-        NSArray *groupedEventsArray = groupedEvents[key];
-        
-        NSMutableDictionary *activitiesDictionary = [NSMutableDictionary new];
-        for (NSArray<OCKCarePlanEvent *> *events in groupedEventsArray) {
-            NSString *activityTitle = events.firstObject.activity.title;
-            activitiesDictionary[activityTitle] = events;
-        }
-        
-        NSArray *sortedActivitiesKeys = [activitiesDictionary.allKeys sortedArrayUsingSelector:@selector(compare:)];
-        for (NSString *activityKey in sortedActivitiesKeys) {
-            [groupArray addObject:activitiesDictionary[activityKey]];
-        }
-        
-        [array addObject:groupArray];
-    }
-    
-    _tableViewData = [array mutableCopy];
 }
 
 - (void)reloadCareCardTableViewCell:(OCKCareCardTableViewCell *)cell {
@@ -562,28 +503,22 @@
     }
 
     if ([event.date isEqualToDate:self.selectedDate]) {
-        for (int i = 0; i < _tableViewData.count; i++) {
-            NSMutableArray<NSMutableArray <OCKCarePlanEvent *> *> *groupedEvents = _tableViewData[i];
-            
-            for (int j = 0; j < groupedEvents.count; j++) {
-                NSMutableArray<OCKCarePlanEvent *> *events = groupedEvents[j];
-                
-                if ([events.firstObject.activity.identifier isEqualToString:event.activity.identifier]) {
-                    if (events[event.occurrenceIndexOfDay].numberOfDaysSinceStart == event.numberOfDaysSinceStart) {
-                        [events replaceObjectAtIndex:event.occurrenceIndexOfDay withObject:event];
-                        _tableViewData[i][j] = events;
-                        
-                        [self updateHeaderView];
-                        
-                        NSIndexPath *indexPath = [NSIndexPath indexPathForRow:j inSection:i];
-                        OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
-                        cell.interventionEvents = events;
-                        
-                        [self reloadCareCardTableViewCell:cell];
-                    }
+        for (NSMutableArray<OCKCarePlanEvent *> *events in _events) {
+            if ([events.firstObject.activity.identifier isEqualToString:event.activity.identifier]) {
+                if (events[event.occurrenceIndexOfDay].numberOfDaysSinceStart == event.numberOfDaysSinceStart) {
+                    [events replaceObjectAtIndex:event.occurrenceIndexOfDay withObject:event];
+                    
+                    [self updateHeaderView];
+                    
+                    NSIndexPath *indexPath = [NSIndexPath indexPathForRow:[_events indexOfObject:events] inSection:0];
+                    OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
+                    cell.interventionEvents = events;
+                    cell.showEdgeIndicator = cell.showEdgeIndicator;
+                    
+                    [self reloadCareCardTableViewCell:cell];
+                    
                     break;
                 }
-
             }
         }
     }
@@ -649,12 +584,8 @@
 
 #pragma mark - UITableViewDataSource
 
-- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
-    return _tableViewData.count;
-}
-
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
-    return _tableViewData[section].count;
+    return _events.count;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -664,7 +595,7 @@
         cell = [[OCKCareCardTableViewCell alloc] initWithStyle:UITableViewCellStyleDefault
                                                reuseIdentifier:CellIdentifier];
     }
-    cell.interventionEvents = _tableViewData[indexPath.section][indexPath.row];
+    cell.interventionEvents = _events[indexPath.row];
     cell.delegate = self;
     return cell;
 }

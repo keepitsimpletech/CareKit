@@ -103,6 +103,20 @@ OCK_CLASS_AVAILABLE
                                         patient:(nullable OCKPatient *)patient;
 
 /**
+ The initializer requires an identifier and a local directory URL.
+ The directory in the URL must exist, otherwise this initializer raises an exception.
+ 
+ @param     URL                 The directory for the store to save its database file.
+ @param     identifier          A unqiue identifier for the store.
+ @param     patient             The patient associated with the store.
+ 
+ @return    An instance of the store.
+ */
+- (instancetype)initWithPersistenceDirectoryURL:(NSURL *)URL
+                                     identifier:(NSString *)identifier
+                                        patient:(nullable OCKPatient *)patient;
+
+/**
  The initializer requires a local directory URL.
  The directory in the URL must exist, otherwise this initializer raises an exception.
  

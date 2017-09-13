@@ -90,6 +90,12 @@ static const CGFloat ButtonViewSize = 40.0;
         [self addSubview:_textLabel];
     }
     
+    if (!_button) {
+        _button = [UIButton new];
+        [_button addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
+        [self addSubview:_button];
+    }
+    
     for (OCKCareCardButton *button in _frequencyButtons) {
         [button removeFromSuperview];
     }
@@ -110,12 +116,6 @@ static const CGFloat ButtonViewSize = 40.0;
         [self addSubview:frequencyButton];
     }
     _frequencyButtons = [buttons copy];
-    
-    if (!_button) {
-        _button = [UIButton new];
-        [_button addTarget:self action:@selector(buttonTapped:) forControlEvents:UIControlEventTouchUpInside];
-        [self addSubview:_button];
-    }
     
     [self updateView];
     [self setUpConstraints];
@@ -205,13 +205,13 @@ static const CGFloat ButtonViewSize = 40.0;
                                                                      attribute:NSLayoutAttributeBottom
                                                                     multiplier:1.0
                                                                       constant:0.0],
-                                        [NSLayoutConstraint constraintWithItem:_button
-                                                                     attribute:NSLayoutAttributeWidth
+                                        [NSLayoutConstraint constraintWithItem:self
+                                                                     attribute:NSLayoutAttributeLeading
                                                                      relatedBy:NSLayoutRelationEqual
-                                                                        toItem:nil
-                                                                     attribute:NSLayoutAttributeNotAnAttribute
+                                                                        toItem:_button
+                                                                     attribute:NSLayoutAttributeLeading
                                                                     multiplier:1.0
-                                                                      constant:30.0 + TrailingMargin]
+                                                                      constant:0.0],
                                         ]];
     
     for (int i = 0; i < _frequencyButtons.count; i++) {

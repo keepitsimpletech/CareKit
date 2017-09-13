@@ -282,7 +282,8 @@
 }
 
 - (void)setSelectedDate:(NSDateComponents *)selectedDate {
-    _selectedDate = selectedDate;
+    NSDateComponents *today = [self today];
+    _selectedDate = [selectedDate isLaterThan:today] ? today : selectedDate;
     
     _weekViewController.weekView.isToday = [[self today] isEqualToDate:selectedDate];
     _weekViewController.weekView.selectedIndex = self.selectedDate.weekday - 1;
@@ -345,7 +346,9 @@
                                     startDate:self.selectedDate
                                       endDate:self.selectedDate
                                       handler:^(NSDateComponents *date, NSUInteger completedEvents, NSUInteger totalEvents) {
-                                          if (totalEvents == 0) {
+                                          if ([date isLaterThan:[self today]]) {
+                                              [values addObject:@(0)];
+                                          } else if (totalEvents == 0) {
                                               [values addObject:@(1)];
                                           } else {
                                               [values addObject:@((float)completedEvents/totalEvents)];
@@ -445,6 +448,12 @@
     OCKWeekView *currentWeekView = (OCKWeekView *)weekView;
     NSDateComponents *selectedDate = [self dateFromSelectedIndex:currentWeekView.selectedIndex];
     self.selectedDate = selectedDate;
+}
+
+- (BOOL)weekViewCanSelectDayAtIndex:(NSUInteger)index {
+    NSDateComponents *today = [self today];
+    NSDateComponents *selectedDate = [self dateFromSelectedIndex:index];
+    return ![selectedDate isLaterThan:today];
 }
 
 
@@ -563,7 +572,7 @@
     controller.weekView.tintColor = self.glyphTintColor;
     controller.weekView.isCareCard = YES;
     controller.weekView.glyphType = self.glyphType;
-    return controller;
+    return (![self.selectedDate isInSameWeekAsDate:[self today]]) ? controller : nil;
 }
 
 
@@ -583,6 +592,10 @@
 
 
 #pragma mark - UITableViewDataSource
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView {
+    return 1;
+}
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section {
     return _events.count;

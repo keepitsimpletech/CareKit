@@ -894,6 +894,7 @@
 				241707CF1C9A3AB7005D7123 /* OCKGroupedBarChartView.h in Headers */,
 				AEB37F691DF22BEF002370A6 /* OCKColor.h in Headers */,
 				BA155DCA1EB1DFE400DB391F /* OCKPatient.h in Headers */,
+				24EA9FBC1C9A3D420036028E /* OCKCareCardTableViewCell.h in Headers */,
 				8677EE131C9775EB00588CD6 /* OCKCarePlanEvent_Internal.h in Headers */,
 				BA274F3A1EB6F63400DD17EF /* OCKConnectMessagesViewController.h in Headers */,
 				BA3793DA1EB66BC50004A540 /* OCKPatientWidgetView.h in Headers */,

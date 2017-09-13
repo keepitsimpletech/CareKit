@@ -44,7 +44,7 @@
 		241707DC1C9A3AB7005D7123 /* OCKInsightsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 241707C01C9A3AB7005D7123 /* OCKInsightsViewController.m */; };
 		241707DD1C9A3AB7005D7123 /* OCKMessageItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 241707C11C9A3AB7005D7123 /* OCKMessageItem.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		241707DE1C9A3AB7005D7123 /* OCKMessageItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 241707C21C9A3AB7005D7123 /* OCKMessageItem.m */; };
-		242DBA901C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 242DBA821C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h */; };
+		242DBA901C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 242DBA821C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		242DBA911C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 242DBA831C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.m */; };
 		242DBA961C9F7F8700529386 /* OCKSymptomTrackerViewController.h in Headers */ = {isa = PBXBuildFile; fileRef = 242DBA881C9F7F8700529386 /* OCKSymptomTrackerViewController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		242DBA971C9F7F8700529386 /* OCKSymptomTrackerViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 242DBA891C9F7F8700529386 /* OCKSymptomTrackerViewController.m */; };
@@ -883,6 +883,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				242DBA901C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h in Headers */,
 				402F43F31F464CB400D2499C /* HealthSteps.h in Headers */,
 				244A92491CA210F7007B42D6 /* OCKWeekViewController.h in Headers */,
 				24EA9FB61C9A3D420036028E /* OCKCareCardDetailHeaderView.h in Headers */,
@@ -928,7 +929,6 @@
 				BA3793EC1EB66D7D0004A540 /* OCKPatientWidget_Internal.h in Headers */,
 				248929751C90E70100EBBE1F /* OCKConnectDetailViewController.h in Headers */,
 				BA8A8CA01D9DAC680078C5EA /* OCKWeekView.h in Headers */,
-				242DBA901C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h in Headers */,
 				BA274F421EB6F75300DD17EF /* OCKConnectMessageTableViewCell.h in Headers */,
 				248929801C90E70100EBBE1F /* OCKContact.h in Headers */,
 				8677EE1E1C9775EB00588CD6 /* OCKCareSchedule_Private.h in Headers */,

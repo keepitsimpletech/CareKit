@@ -125,7 +125,7 @@ NS_ASSUME_NONNULL_BEGIN
  Activities can include a detail view. Therefore, it must be embedded inside a `UINavigationController`.
  */
 OCK_CLASS_AVAILABLE
-@interface OCKCareContentsViewController : UIViewController
+@interface OCKCareContentsViewController : UIViewController <UITableViewDelegate, UITableViewDataSource>
 
 - (instancetype)init NS_UNAVAILABLE;
 
@@ -146,6 +146,12 @@ OCK_CLASS_AVAILABLE
  */
 @property (nonatomic, readonly) OCKCarePlanStore *store;
 
+/**
+ The currently selected date.
+ 
+ This value defaults to the current date.
+ */
+@property (nonatomic, readwrite) NSDateComponents *selectedDate;
 
 /**
  The last activity selected by the user.
@@ -154,7 +160,6 @@ OCK_CLASS_AVAILABLE
  */
 @property (nonatomic, readonly, nullable) OCKCarePlanActivity *lastSelectedActivity;
 
-
 /**
  The last event selected by the user.
  
@@ -162,6 +167,10 @@ OCK_CLASS_AVAILABLE
  */
 @property (nonatomic, readonly, nullable) OCKCarePlanEvent *lastSelectedEvent;
 
+/**
+ A reference to the `UITableView` contained in the view controller
+ */
+@property (nonatomic, readonly, nonnull) UITableView *tableView;
 
 /**
  The image that will be used to mask the fill shape in the week view.
@@ -176,7 +185,6 @@ OCK_CLASS_AVAILABLE
  */
 @property (nonatomic, null_resettable) UIColor *glyphTintColor;
 
-
 /**
  The glyph type for the header view (see OCKGlyphType).
  */
@@ -187,7 +195,6 @@ OCK_CLASS_AVAILABLE
  and we need a way to access that to send the custom image name string to the watch
  */
 @property (nonatomic, copy) NSString *customGlyphImageName;
-
 
 /**
  The delegate can be used to modify or update the internvention events before they are displayed.

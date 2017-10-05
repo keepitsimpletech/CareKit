@@ -48,9 +48,7 @@
 #define RedColor() OCKColorFromRGB(0xEF445B);
 
 
-@interface OCKCareContentsViewController() <OCKWeekViewDelegate, OCKCarePlanStoreDelegate, OCKCareCardCellDelegate, UITableViewDelegate, UITableViewDataSource, UIPageViewControllerDelegate, UIPageViewControllerDataSource, UIViewControllerPreviewingDelegate>
-
-@property (nonatomic) NSDateComponents *selectedDate;
+@interface OCKCareContentsViewController() <OCKWeekViewDelegate, OCKCarePlanStoreDelegate, OCKCareCardCellDelegate, UIPageViewControllerDelegate, UIPageViewControllerDataSource, UIViewControllerPreviewingDelegate>
 
 @end
 
@@ -294,7 +292,8 @@
 }
 
 - (void)setSelectedDate:(NSDateComponents *)selectedDate {
-    _selectedDate = selectedDate;
+    NSDateComponents *today = [self today];
+    _selectedDate = [selectedDate isLaterThan:today] ? today : selectedDate;
     
     _weekViewController.weekView.isToday = [[self today] isEqualToDate:selectedDate];
     _weekViewController.weekView.selectedIndex = self.selectedDate.weekday - 1;
@@ -378,7 +377,9 @@
                                                                                       handler:^(NSDateComponents *date, NSUInteger completedAssessmentEvents, NSUInteger totalAssessmentEvents) {
                                                                                           completedEvents = completedEvents + completedAssessmentEvents;
                                                                                           totalEvents = totalEvents + totalAssessmentEvents;
-                                                                                          if (totalEvents == 0) {
+                                                                                          if ([date isLaterThan:[self today]]) {
+                                                                                              [values addObject:@(0)];
+                                                                                          } else if (totalEvents == 0) {
                                                                                               [values addObject:@(1)];
                                                                                           } else {
                                                                                               [values addObject:@((float)completedEvents/totalEvents)];
@@ -412,6 +413,7 @@
     NSMutableArray *interventionTotal = [NSMutableArray new];
     NSMutableArray *assessmentCompleted = [NSMutableArray new];
     NSMutableArray *assessmentTotal = [NSMutableArray new];
+    NSMutableArray *dates = [NSMutableArray new];
     __weak __typeof__(self) weakSelf = self;
     [self.store dailyCompletionStatusWithType:OCKCarePlanActivityTypeIntervention
                                     startDate:[NSDateComponents ock_componentsWithDate:startOfWeek calendar:_calendar]
@@ -419,6 +421,7 @@
                                       handler:^(NSDateComponents *date, NSUInteger completedEvents, NSUInteger totalEvents) {
                                           [interventionCompleted addObject:@((float)completedEvents)];
                                           [interventionTotal addObject:@((float)totalEvents)];
+                                          [dates addObject:date];
                                       } completion:^(BOOL completed, NSError *error) {
                                           NSAssert(!error, error.localizedDescription);
                                           dispatch_async(dispatch_get_main_queue(), ^{
@@ -433,7 +436,10 @@
                                                                                           NSAssert(!error, error.localizedDescription);
                                                                                           dispatch_async(dispatch_get_main_queue(), ^{
                                                                                               for (int i = 0; i<7; i++) {
-                                                                                                  if (([interventionTotal[i] floatValue] + [assessmentTotal[i] floatValue]) == 0) {
+                                                                                                  NSDateComponents *date = dates[i];
+                                                                                                  if ([date isLaterThan:[self today]]) {
+                                                                                                      [values addObject:@(0)];
+                                                                                                  } else if (([interventionTotal[i] floatValue] + [assessmentTotal[i] floatValue]) == 0) {
                                                                                                       [values addObject:@(1)];
                                                                                                   } else {
                                                                                                       float completed = [interventionCompleted[i] floatValue] + [assessmentCompleted[i] floatValue];
@@ -572,6 +578,11 @@
     _tableViewData = [array mutableCopy];
 }
 
+- (void)reloadCareCardTableViewCell:(OCKCareCardTableViewCell *)cell {
+    [self.tableView beginUpdates];
+    [self.tableView endUpdates];
+}
+
 
 #pragma mark - OCKWeekViewDelegate
 
@@ -599,9 +610,10 @@
                     
                     NSIndexPath *indexPath = [NSIndexPath indexPathForRow:j inSection:i];
                     OCKCarePlanActivityType type = _tableViewData[indexPath.section][indexPath.row].firstObject.activity.type;
-                    if ( type == OCKCarePlanActivityTypeIntervention) {
+                    if (type == OCKCarePlanActivityTypeIntervention) {
                         OCKCareCardTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
                         cell.interventionEvents = events;
+                        [self reloadCareCardTableViewCell:cell];
                     } else if (type == OCKCarePlanActivityTypeAssessment) {
                         OCKSymptomTrackerTableViewCell *cell = [_tableView cellForRowAtIndexPath:indexPath];
                         cell.assessmentEvent = events.firstObject;
@@ -656,7 +668,7 @@
     controller.weekView.tintColor = self.glyphTintColor;
     controller.weekView.isCareCard = YES;
     controller.weekView.glyphType = self.glyphType;
-    return controller;
+    return (![self.selectedDate isInSameWeekAsDate:[self today]]) ? controller : nil;
 }
 
 

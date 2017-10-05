@@ -41,6 +41,9 @@
 #import <CareKit/OCKCarePlanStore.h>
 #import <CareKit/OCKCarePlanThreshold.h>
 
+// Label
+#import <CareKit/OCKLabel.h>
+
 // Glyph
 #import <CareKit/OCKGlyph.h>
 
@@ -79,8 +82,8 @@
 // PDF
 #import <CareKit/OCKDocument.h>
 
-// HealthSteps
-#import <CareKit/HealthSteps.h>
-
 // Colors
 #import <CareKit/OCKColor.h>
+
+// HealthSteps
+#import <CareKit/HealthSteps.h>

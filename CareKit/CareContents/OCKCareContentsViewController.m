@@ -511,10 +511,6 @@
         
         NSString *groupIdentifier = firstEvent.activity.groupIdentifier ? firstEvent.activity.groupIdentifier : _otherString;
         
-        if (firstEvent.activity.optional) {
-            groupIdentifier = firstEvent.activity.type == OCKCarePlanActivityTypeReadOnly ? _readOnlyString : _optionalString;
-        }
-        
         if (groupedEvents[groupIdentifier]) {
             NSMutableArray<NSArray *> *objects = [groupedEvents[groupIdentifier] mutableCopy];
             [objects addObject:activityEvents];
@@ -544,16 +540,6 @@
     if ([sortedKeys containsObject:_otherString]) {
         [sortedKeys removeObject:_otherString];
         [sortedKeys addObject:_otherString];
-    }
-    
-    if ([sortedKeys containsObject:_optionalString]) {
-        [sortedKeys removeObject:_optionalString];
-        [sortedKeys addObject:_optionalString];
-    }
-    
-    if ([sortedKeys containsObject:_readOnlyString]) {
-        [sortedKeys removeObject:_readOnlyString];
-        [sortedKeys addObject:_readOnlyString];
     }
     
     _sectionTitles = [sortedKeys copy];

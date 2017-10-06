@@ -565,7 +565,7 @@
         
         NSMutableDictionary *activitiesDictionary = [NSMutableDictionary new];
         for (NSArray<OCKCarePlanEvent *> *events in groupedEventsArray) {
-            NSString *activityTitle = events.firstObject.activity.title;
+            NSString *activityTitle = events.firstObject.activity.identifier;
             activitiesDictionary[activityTitle] = events;
         }
         

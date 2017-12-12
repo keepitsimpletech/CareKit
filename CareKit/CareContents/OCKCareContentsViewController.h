@@ -213,6 +213,11 @@ OCK_CLASS_AVAILABLE
  */
 @property (nonatomic, nullable) NSString *readOnlySectionHeader;
 
+/**
+ Groups and orders events;
+ */
+- (void)createGroupedEventDictionaryForEvents;
+
 @end
 
 NS_ASSUME_NONNULL_END

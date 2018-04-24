@@ -35,6 +35,7 @@
 @interface OCKTableViewCell : UITableViewCell
 
 - (void)prepareView;
+- (void)updateView;
 
 @property (nonatomic) BOOL showEdgeIndicator;
 

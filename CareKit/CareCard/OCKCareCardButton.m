@@ -1,5 +1,6 @@
 /*
  Copyright (c) 2016, Apple Inc. All rights reserved.
+ Copyright (c) 2018, Erik Hornberger. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -34,10 +35,12 @@
 
 
 static const CGFloat ButtonSize = 30.0;
+static const CGFloat LabelOffset = 8.0;
 
 @implementation OCKCareCardButton {
     CAShapeLayer *_circleLayer;
     UIImageView *_imageView;
+    UILabel *_label;
 }
 
 - (void)drawRect:(CGRect)rect {
@@ -62,6 +65,16 @@ static const CGFloat ButtonSize = 30.0;
         [self updateImageForSelection:self.isSelected];
         [self addSubview:_imageView];
     }
+
+    if (!_label) {
+        CGRect labelRect = CGRectMake(0, ButtonSize/2 + LabelOffset, ButtonSize, ButtonSize);
+        _label = [[UILabel alloc] initWithFrame:labelRect];
+        _label.font = [UIFont systemFontOfSize:9 weight:UIFontWeightHeavy];
+        _label.textColor = self.tintColor;
+        _label.textAlignment = NSTextAlignmentCenter;
+        [self updateTextForSelection];
+    }
+        [self addSubview:_label];
 }
 
 - (void)setHighlighted:(BOOL)highlighted {
@@ -86,6 +99,10 @@ static const CGFloat ButtonSize = 30.0;
 
 - (void)updateImageForSelection:(BOOL)selection {
     [_imageView setImage: selection ? self.buttonImage : NULL];
+}
+
+- (void)updateTextForSelection {
+    _label.text = self.isSelected ? self.selectedText : self.deselectedText;
 }
 
 - (CABasicAnimation *)animFillColorWithDur:(CGFloat)dur startCol:(UIColor *)start endColor:(UIColor *)end {

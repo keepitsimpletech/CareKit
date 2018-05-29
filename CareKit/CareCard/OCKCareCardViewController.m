@@ -650,6 +650,19 @@
     }
 }
 
+- (nullable NSString*) careCardTableViewCell:(OCKCareCardTableViewCell *)cell selectedStateTextForCarePlanEvent:(OCKCarePlanEvent *)carePlanEvent atIndex:(NSInteger)index {
+    if ([self.delegate respondsToSelector:@selector(careCardViewController:selectedStateTextForCarePlanEvent:atButtonIndex:)]) {
+        return [self.delegate careCardViewController:self selectedStateTextForCarePlanEvent:carePlanEvent atButtonIndex:index];
+    }
+    return NULL;
+}
+
+- (nullable NSString*) careCardTableViewCell:(OCKCareCardTableViewCell *)cell deselectedStateTextForCarePlanEvent:(OCKCarePlanEvent *)carePlanEvent atIndex:(NSInteger)index {
+    if ([self.delegate respondsToSelector:@selector(careCardViewController:deselectedStateTextForCarePlanEvent:atButtonIndex:)]) {
+        return [self.delegate careCardViewController:self deselectedStateTextForCarePlanEvent:carePlanEvent atButtonIndex:index];
+    }
+    return NULL;
+}
 
 #pragma mark - OCKCarePlanStoreDelegate
 
@@ -758,6 +771,7 @@
     cell.interventionEvents = _events[indexPath.row];
     cell.delegate = self;
     cell.buttonImage = self.buttonImage;
+    //cell.interventionEvents = _tableViewData[indexPath.section][indexPath.row];
     return cell;
 }
 

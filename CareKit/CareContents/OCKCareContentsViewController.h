@@ -1,6 +1,8 @@
 /*
  Copyright (c) 2017, Apple Inc. All rights reserved.
  Copyright (c) 2017, Erik Hornberger. All rights reserved.
+ Copyright (c) 2017, EExT LLC. All rights reserved.
+ Copyright (c) 2018, Swift愛好会. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -137,6 +139,24 @@ NS_ASSUME_NONNULL_BEGIN
                                     It is the developers responsibility to call `endRefreshing` as appropriate, on the main thread.
  */
 - (void)careContentsViewController:(OCKCareContentsViewController *)viewController didActivatePullToRefreshControl:(UIRefreshControl *)refreshControl;
+
+/**
+ Asks the delegate for text to display below each `OCKCareCardButton` in the cell when in a selected state.
+ 
+ @param viewController              The view controller providing the callback.
+ @param carePlanEvent               The `OCKCarePlanEvent` that the button represents
+ @param index                       The index of the `OCKCareCardButton` within the cell
+ */
+- (nullable NSString *)careContentsViewController:(OCKCareContentsViewController *)viewController selectedStateTextForCarePlanEvent: (OCKCarePlanEvent *)carePlanEvent atButtonIndex: (NSInteger)index;
+
+/**
+ Asks the delegate for text to display below each `OCKCareCardButton` in the cell when in a deselected state.
+ 
+ @param viewController              The view controller providing the callback.
+ @param carePlanEvent               The `OCKCarePlanEvent` that the button represents
+ @param index                       The index of the `OCKCareCardButton` within the cell
+ */
+- (nullable NSString *)careContentsViewController:(OCKCareContentsViewController *)viewController deselectedStateTextForCarePlanEvent: (OCKCarePlanEvent *)carePlanEvent atButtonIndex: (NSInteger)index;
 
 @end
 

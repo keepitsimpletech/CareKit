@@ -1,6 +1,8 @@
 /*
  Copyright (c) 2017, Apple Inc. All rights reserved.
  Copyright (c) 2017, Erik Hornberger. All rights reserved.
+ Copyright (c) 2017, EExT LLC. All rights reserved.
+ Copyright (c) 2018, Swift愛好会. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -871,7 +873,6 @@
         }
         
         cell.readOnlyEvent = event;
-
         return cell;
     }
     else {
@@ -886,7 +887,6 @@
         cell.interventionEvents = events;
         cell.buttonImage = _buttonImage;
         cell.delegate = self;
-        
         return cell;
     }
     
@@ -959,6 +959,19 @@
     }
 }
 
+- (nullable NSString*)careCardTableViewCell:(OCKCareCardTableViewCell *)cell selectedStateTextForCarePlanEvent:(OCKCarePlanEvent *)carePlanEvent atIndex:(NSInteger)index {
+    if([self.delegate respondsToSelector:@selector(careContentsViewController:selectedStateTextForCarePlanEvent:atButtonIndex:)]) {
+        return [self.delegate careContentsViewController:self selectedStateTextForCarePlanEvent:carePlanEvent atButtonIndex:index];
+    }
+    return NULL;
+}
+
+- (nullable NSString*)careCardTableViewCell:(OCKCareCardTableViewCell *)cell deselectedStateTextForCarePlanEvent:(OCKCarePlanEvent *)carePlanEvent atIndex:(NSInteger)index {
+    if([self.delegate respondsToSelector:@selector(careContentsViewController:deselectedStateTextForCarePlanEvent:atButtonIndex:)]) {
+        return [self.delegate careContentsViewController:self deselectedStateTextForCarePlanEvent:carePlanEvent atButtonIndex:index];
+    }
+    return NULL;
+}
 
 #pragma mark - UIViewControllerPreviewingDelegate
 

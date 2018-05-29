@@ -757,6 +757,7 @@
     }
     cell.interventionEvents = _events[indexPath.row];
     cell.delegate = self;
+    cell.buttonImage = self.buttonImage;
     return cell;
 }
 

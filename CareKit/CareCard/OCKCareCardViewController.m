@@ -36,6 +36,7 @@
 #import "OCKWeekViewController.h"
 #import "NSDateComponents+CarePlanInternal.h"
 #import "OCKHeaderView.h"
+#import "OCKLabel.h"
 #import "OCKCareCardTableViewCell.h"
 #import "OCKWeekLabelsView.h"
 #import "OCKCarePlanStore_Internal.h"
@@ -61,8 +62,13 @@
     NSCalendar *_calendar;
     NSMutableArray *_constraints;
     NSMutableArray *_sectionTitles;
+    NSMutableArray<NSMutableArray <NSMutableArray <OCKCarePlanEvent *> *> *> *_tableViewData;
     NSString *_otherString;
     NSString *_optionalString;
+    BOOL _isGrouped;
+    BOOL _isSorted;
+    UIRefreshControl *_refreshControl;
+    OCKLabel *_noActivitiesLabel;
 }
 
 - (instancetype)init {
@@ -76,6 +82,8 @@
         _store = store;
         _calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
         _glyphTintColor = nil;
+        _isGrouped = YES;
+        _isSorted = YES;
     }
     return self;
 }
@@ -111,6 +119,22 @@
     _tableView.estimatedSectionHeaderHeight = 0;
     _tableView.estimatedSectionFooterHeight = 0;
     
+    _refreshControl = [[UIRefreshControl alloc] init];
+    _refreshControl.tintColor = [UIColor grayColor];
+    [_refreshControl addTarget:self action:@selector(didActivatePullToRefreshControl:) forControlEvents:UIControlEventValueChanged];
+    _tableView.refreshControl = _refreshControl;
+    [self updatePullToRefreshControl];
+    
+    _noActivitiesLabel = [OCKLabel new];
+    _noActivitiesLabel.hidden = YES;
+    _noActivitiesLabel.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    _noActivitiesLabel.textStyle = UIFontTextStyleTitle2;
+    _noActivitiesLabel.textColor = [UIColor lightGrayColor];
+    _noActivitiesLabel.text = self.noActivitiesText;
+    _noActivitiesLabel.textAlignment = NSTextAlignmentCenter;
+    _noActivitiesLabel.numberOfLines = 0;
+    _tableView.backgroundView = _noActivitiesLabel;
+    
     self.navigationController.navigationBar.translucent = NO;
     [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithRed:245.0/255.0 green:244.0/255.0 blue:246.0/255.0 alpha:1.0]];
 }
@@ -125,7 +149,20 @@
 
 - (void)showToday:(id)sender {
     self.selectedDate = [NSDateComponents ock_componentsWithDate:[NSDate date] calendar:_calendar];
-    [_tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:NSNotFound inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+    if (_tableViewData.count > 0) {
+        [_tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:NSNotFound inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
+    }
+}
+
+- (void)didActivatePullToRefreshControl:(UIRefreshControl *)sender
+{
+    if (nil == _delegate ||
+        ![_delegate respondsToSelector:@selector(careCardViewController:didActivatePullToRefreshControl:)]) {
+        
+        return;
+    }
+    
+    [_delegate careCardViewController:self didActivatePullToRefreshControl:sender];
 }
 
 - (void)prepareView {
@@ -133,10 +170,9 @@
         _headerView = [[OCKHeaderView alloc] initWithFrame:CGRectZero];
         [self.view addSubview:_headerView];
     }
-    if ([_headerTitle length] == 0) {
-        _headerTitle = OCKLocalizedString(@"CARE_CARD_HEADER_TITLE", nil);
+    if ([_headerTitle length] > 0) {
+        _headerView.title = _headerTitle;
     }
-    _headerView.title = _headerTitle;
     _headerView.tintColor = self.glyphTintColor;
     if (self.glyphType == OCKGlyphTypeCustom) {
         UIImage *glyphImage = [self createCustomImageName:self.customGlyphImageName];
@@ -303,13 +339,28 @@
 
 - (void)setHeaderTitle:(NSString *)headerTitle {
     _headerTitle = headerTitle;
-    if ([_headerTitle length] == 0) {
-        _headerView.title = OCKLocalizedString(@"CARE_CARD_HEADER_TITLE", nil);
-    } else {
+    if ([_headerTitle length] > 0) {
         _headerView.title = _headerTitle;
     }
 }
 
+- (void)setDelegate:(id<OCKCareCardViewControllerDelegate>)delegate
+{
+    _delegate = delegate;
+    
+    if ([NSOperationQueue currentQueue] != [NSOperationQueue mainQueue]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self updatePullToRefreshControl];
+        });
+    } else {
+        [self updatePullToRefreshControl];
+    }
+}
+
+- (void)setNoActivitiesText:(NSString *)noActivitiesText {
+    _noActivitiesText = noActivitiesText;
+    _noActivitiesLabel.text = noActivitiesText;
+}
 
 #pragma mark - Helpers
 
@@ -328,6 +379,9 @@
                               [self.delegate respondsToSelector:@selector(careCardViewController:willDisplayEvents:dateComponents:)]) {
                               [self.delegate careCardViewController:self willDisplayEvents:[_events copy] dateComponents:_selectedDate];
                           }
+                          
+                          _noActivitiesLabel.hidden = (_events.count > 0);
+                          [self createGroupedEventDictionaryForEvents:_events];
                           
                           [self updateHeaderView];
                           [self updateWeekView];
@@ -381,7 +435,9 @@
                                     startDate:[NSDateComponents ock_componentsWithDate:startOfWeek calendar:_calendar]
                                       endDate:[NSDateComponents ock_componentsWithDate:endOfWeek calendar:_calendar]
                                       handler:^(NSDateComponents *date, NSUInteger completedEvents, NSUInteger totalEvents) {
-                                          if (totalEvents == 0) {
+                                          if ([date isLaterThan:[self today]]) {
+                                              [values addObject:@(0)];
+                                          } else if (totalEvents == 0) {
                                               [values addObject:@(1)];
                                           } else {
                                               [values addObject:@((float)completedEvents/totalEvents)];
@@ -423,6 +479,19 @@
     return self.delegate && [self.delegate respondsToSelector:@selector(careCardViewController:didSelectRowWithInterventionActivity:)];
 }
 
+- (void)updatePullToRefreshControl
+{
+    if (nil != _delegate &&
+        [_delegate respondsToSelector:@selector(shouldEnablePullToRefreshInCareCardViewController:)] &&
+        [_delegate shouldEnablePullToRefreshInCareCardViewController:self]) {
+        
+        _tableView.refreshControl = _refreshControl;
+    } else {
+        [_tableView.refreshControl endRefreshing];
+        _tableView.refreshControl = nil;
+    }
+}
+
 - (UIImage *)createCustomImageName:(NSString*)customImageName {
     UIImage *customImageToReturn;
     if (customImageName != nil) {
@@ -441,6 +510,85 @@
     [self.tableView endUpdates];
 }
 
+- (void)createGroupedEventDictionaryForEvents:(NSArray<NSArray<OCKCarePlanEvent *> *> *)events {
+    NSMutableDictionary *groupedEvents = [NSMutableDictionary new];
+    NSMutableArray *groupArray = [NSMutableArray new];
+    
+    for (NSArray<OCKCarePlanEvent *> *activityEvents in events) {
+        OCKCarePlanEvent *firstEvent = activityEvents.firstObject;
+        NSString *groupIdentifier = firstEvent.activity.groupIdentifier ? firstEvent.activity.groupIdentifier : _otherString;
+        
+        if (firstEvent.activity.optional) {
+            groupIdentifier = _optionalString;
+        }
+        
+        if (!_isGrouped) {
+            // Force only one grouping
+            groupIdentifier = _otherString;
+        }
+        
+        if (groupedEvents[groupIdentifier]) {
+            NSMutableArray<NSArray *> *objects = [groupedEvents[groupIdentifier] mutableCopy];
+            [objects addObject:activityEvents];
+            groupedEvents[groupIdentifier] = objects;
+        } else {
+            NSMutableArray<NSArray *> *objects = [[NSMutableArray alloc] initWithArray:activityEvents];
+            groupedEvents[groupIdentifier] = @[objects];
+            [groupArray addObject:groupIdentifier];
+        }
+    }
+    
+    if (_isGrouped && _isSorted) {
+        
+        NSMutableArray *sortedKeys = [[groupedEvents.allKeys sortedArrayUsingSelector:@selector(compare:)] mutableCopy];
+        if ([sortedKeys containsObject:_otherString]) {
+            [sortedKeys removeObject:_otherString];
+            [sortedKeys addObject:_otherString];
+        }
+        
+        if ([sortedKeys containsObject:_optionalString]) {
+            [sortedKeys removeObject:_optionalString];
+            [sortedKeys addObject:_optionalString];
+        }
+        
+        _sectionTitles = [sortedKeys copy];
+        
+    } else {
+        
+        _sectionTitles = [groupArray mutableCopy];
+        
+    }
+    
+    NSMutableArray *array = [NSMutableArray new];
+    for (NSString *key in _sectionTitles) {
+        NSMutableArray *groupArray = [NSMutableArray new];
+        NSArray *groupedEventsArray = groupedEvents[key];
+        
+        if (_isSorted) {
+            
+            NSMutableDictionary *activitiesDictionary = [NSMutableDictionary new];
+            for (NSArray<OCKCarePlanEvent *> *events in groupedEventsArray) {
+                NSString *activityTitle = events.firstObject.activity.title;
+                activitiesDictionary[activityTitle] = events;
+            }
+            
+            NSArray *sortedActivitiesKeys = [activitiesDictionary.allKeys sortedArrayUsingSelector:@selector(compare:)];
+            for (NSString *activityKey in sortedActivitiesKeys) {
+                [groupArray addObject:activitiesDictionary[activityKey]];
+            }
+            
+            [array addObject:groupArray];
+            
+        } else {
+            
+            [array addObject:[groupedEventsArray mutableCopy]];
+            
+        }
+    }
+    
+    _tableViewData = [array mutableCopy];
+}
+
 
 #pragma mark - OCKWeekViewDelegate
 
@@ -455,7 +603,6 @@
     NSDateComponents *selectedDate = [self dateFromSelectedIndex:index];
     return ![selectedDate isLaterThan:today];
 }
-
 
 #pragma mark - OCKCareCardCellDelegate
 

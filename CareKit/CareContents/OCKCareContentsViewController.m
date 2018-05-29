@@ -1,5 +1,6 @@
 /*
  Copyright (c) 2017, Apple Inc. All rights reserved.
+ Copyright (c) 2017, Erik Hornberger. All rights reserved.
  
  Redistribution and use in source and binary forms, with or without modification,
  are permitted provided that the following conditions are met:
@@ -35,6 +36,7 @@
 #import "OCKWeekViewController.h"
 #import "NSDateComponents+CarePlanInternal.h"
 #import "OCKHeaderView.h"
+#import "OCKLabel.h"
 #import "OCKCareCardTableViewCell.h"
 #import "OCKSymptomTrackerTableViewCell.h"
 #import "OCKReadOnlyTableViewCell.h"
@@ -55,6 +57,8 @@
 
 @implementation OCKCareContentsViewController {
     UITableView *_tableView;
+    UIRefreshControl *_refreshControl;
+    OCKLabel *_noActivitiesLabel;
     NSMutableArray<NSMutableArray<OCKCarePlanEvent *> *> *_events;
     NSMutableArray *_weekValues;
     OCKHeaderView *_headerView;
@@ -66,9 +70,15 @@
     NSMutableArray<NSMutableArray <NSMutableArray <OCKCarePlanEvent *> *> *> *_tableViewData;
     NSMutableDictionary *_allEvents;
     
+    BOOL _hasInterventions;
+    BOOL _hasAssessments;
+    BOOL _hasReadOnlyItems;
+    
     NSString *_otherString;
     NSString *_optionalString;
     NSString *_readOnlyString;
+    BOOL _isGrouped;
+    BOOL _isSorted;
 }
 
 - (instancetype)init {
@@ -82,6 +92,8 @@
         _store = store;
         _calendar = [NSCalendar calendarWithIdentifier:NSCalendarIdentifierGregorian];
         _glyphTintColor = nil;
+        _isGrouped = YES;
+        _isSorted = YES;
     }
     return self;
 }
@@ -125,6 +137,22 @@
     _tableView.estimatedSectionHeaderHeight = 0;
     _tableView.estimatedSectionFooterHeight = 0;
     
+    _refreshControl = [[UIRefreshControl alloc] init];
+    _refreshControl.tintColor = [UIColor grayColor];
+    [_refreshControl addTarget:self action:@selector(didActivatePullToRefreshControl:) forControlEvents:UIControlEventValueChanged];
+    _tableView.refreshControl = _refreshControl;
+    [self updatePullToRefreshControl];
+    
+    _noActivitiesLabel = [OCKLabel new];
+    _noActivitiesLabel.hidden = YES;
+    _noActivitiesLabel.textStyle = UIFontTextStyleTitle2;
+    _noActivitiesLabel.textColor = [UIColor lightGrayColor];
+    _noActivitiesLabel.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+    _noActivitiesLabel.text = self.noActivitiesText;
+    _noActivitiesLabel.numberOfLines = 0;
+    _noActivitiesLabel.textAlignment = NSTextAlignmentCenter;
+    _tableView.backgroundView = _noActivitiesLabel;
+    
     self.navigationController.navigationBar.translucent = NO;
     [self.navigationController.navigationBar setBarTintColor:[UIColor colorWithRed:245.0/255.0 green:244.0/255.0 blue:246.0/255.0 alpha:1.0]];
 
@@ -141,6 +169,17 @@
     if (_tableViewData.count > 0) {
         [_tableView scrollToRowAtIndexPath:[NSIndexPath indexPathForRow:NSNotFound inSection:0] atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
     }
+}
+
+- (void)didActivatePullToRefreshControl:(UIRefreshControl *)sender
+{
+    if (nil == _delegate ||
+        ![_delegate respondsToSelector:@selector(careContentsViewController:didActivatePullToRefreshControl:)]) {
+        
+        return;
+    }
+    
+    [_delegate careContentsViewController:self didActivatePullToRefreshControl:sender];
 }
 
 - (void)prepareView {
@@ -313,6 +352,23 @@
     self.navigationItem.rightBarButtonItem.tintColor = _glyphTintColor;
 }
 
+- (void)setDelegate:(id<OCKCareContentsViewControllerDelegate>)delegate
+{
+    _delegate = delegate;
+    
+    if ([NSOperationQueue currentQueue] != [NSOperationQueue mainQueue]) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self updatePullToRefreshControl];
+        });
+    } else {
+        [self updatePullToRefreshControl];
+    }
+}
+
+- (void)setNoActivitiesText:(NSString *)noActivitiesText {
+    _noActivitiesText = noActivitiesText;
+    _noActivitiesLabel.text = noActivitiesText;
+}
 
 #pragma mark - Helpers
 
@@ -345,6 +401,24 @@
                               [self updateHeaderView];
                               [self updateWeekView];
                           }
+                          
+                          switch (type) {
+                              case OCKCarePlanActivityTypeIntervention:
+                                  _hasInterventions = _events.count > 0;
+                                  break;
+                                  
+                              case OCKCarePlanActivityTypeAssessment:
+                                  _hasAssessments = _events.count > 0;
+                                  break;
+                                  
+                              case OCKCarePlanActivityTypeReadOnly:
+                                  _hasReadOnlyItems = _events.count > 0;
+                                  break;
+                                  
+                              default:
+                                  break;
+                          }
+                          _noActivitiesLabel.hidden = _hasAssessments || _hasInterventions || _hasReadOnlyItems;
                           [_tableView reloadData];
                       });
                   }];
@@ -457,6 +531,19 @@
                                       }];
 }
 
+- (void)updatePullToRefreshControl
+{
+    if (nil != _delegate &&
+        [_delegate respondsToSelector:@selector(shouldEnablePullToRefreshInCareContentsViewController:)] &&
+        [_delegate shouldEnablePullToRefreshInCareContentsViewController:self]) {
+        
+        _tableView.refreshControl = _refreshControl;
+    } else {
+        [_tableView.refreshControl endRefreshing];
+        _tableView.refreshControl = nil;
+    }
+}
+
 - (UIImage *)createCustomImageName:(NSString*)customImageName {
     UIImage *customImageToReturn;
     if (customImageName != nil) {
@@ -495,6 +582,7 @@
     
     NSArray<NSArray<OCKCarePlanEvent *> *> *events = [NSArray arrayWithArray:[interventions arrayByAddingObjectsFromArray:[assessments arrayByAddingObjectsFromArray:readOnly]]];
     NSMutableDictionary *groupedEvents = [NSMutableDictionary new];
+    NSMutableArray *groupArray = [NSMutableArray new];
     
     for (NSArray<OCKCarePlanEvent *> *activityEvents in events) {
         OCKCarePlanEvent *firstEvent = activityEvents.firstObject;
@@ -513,6 +601,15 @@
         
         NSString *groupIdentifier = firstEvent.activity.groupIdentifier ? firstEvent.activity.groupIdentifier : _otherString;
         
+        if (firstEvent.activity.optional) {
+            groupIdentifier = firstEvent.activity.type == OCKCarePlanActivityTypeReadOnly ? _readOnlyString : _optionalString;
+        }
+        
+        if (!_isGrouped) {
+            // Force only one grouping
+            groupIdentifier = _otherString;
+        }
+        
         if (groupedEvents[groupIdentifier]) {
             NSMutableArray<NSArray *> *objects = [groupedEvents[groupIdentifier] mutableCopy];
             [objects addObject:activityEvents];
@@ -520,48 +617,75 @@
         } else {
             NSMutableArray<NSArray *> *objects = [activityEvents mutableCopy];
             groupedEvents[groupIdentifier] = @[objects];
+            [groupArray addObject:groupIdentifier];
         }
     }
     
-    NSMutableArray *sortedKeys = [[groupedEvents.allKeys sortedArrayUsingSelector:@selector(compare:)] mutableCopy];
-    
-    for (NSString *groupIdentifier in interventionGroupIdentifiers) {
-        if ([sortedKeys containsObject:groupIdentifier]) {
-            [sortedKeys removeObject:groupIdentifier];
-            [sortedKeys addObject:groupIdentifier];
+    if (_isGrouped && _isSorted) {
+        
+        NSMutableArray *sortedKeys = [[groupedEvents.allKeys sortedArrayUsingSelector:@selector(compare:)] mutableCopy];
+        
+        for (NSString *groupIdentifier in interventionGroupIdentifiers) {
+            if ([sortedKeys containsObject:groupIdentifier]) {
+                [sortedKeys removeObject:groupIdentifier];
+                [sortedKeys addObject:groupIdentifier];
+            }
         }
-    }
-    
-    for (NSString *groupIdentifier in assessmentGroupIdentifiers) {
-        if ([sortedKeys containsObject:groupIdentifier]) {
-            [sortedKeys removeObject:groupIdentifier];
-            [sortedKeys addObject:groupIdentifier];
+        
+        for (NSString *groupIdentifier in assessmentGroupIdentifiers) {
+            if ([sortedKeys containsObject:groupIdentifier]) {
+                [sortedKeys removeObject:groupIdentifier];
+                [sortedKeys addObject:groupIdentifier];
+            }
         }
+        
+        if ([sortedKeys containsObject:_otherString]) {
+            [sortedKeys removeObject:_otherString];
+            [sortedKeys addObject:_otherString];
+        }
+        
+        if ([sortedKeys containsObject:_optionalString]) {
+            [sortedKeys removeObject:_optionalString];
+            [sortedKeys addObject:_optionalString];
+        }
+        
+        if ([sortedKeys containsObject:_readOnlyString]) {
+            [sortedKeys removeObject:_readOnlyString];
+            [sortedKeys addObject:_readOnlyString];
+        }
+        
+        _sectionTitles = [sortedKeys copy];
+        
+    } else {
+        
+        _sectionTitles = [groupArray mutableCopy];
+        
     }
-    
-    if ([sortedKeys containsObject:_otherString]) {
-        [sortedKeys removeObject:_otherString];
-        [sortedKeys addObject:_otherString];
-    }
-    
-    _sectionTitles = [sortedKeys copy];
     
     NSMutableArray *array = [NSMutableArray new];
     for (NSString *key in _sectionTitles) {
         NSMutableArray *groupArray = [NSMutableArray new];
         NSArray *groupedEventsArray = groupedEvents[key];
         
-        NSMutableDictionary *activitiesDictionary = [NSMutableDictionary new];
-        for (NSArray<OCKCarePlanEvent *> *events in groupedEventsArray) {
-            NSString *activityTitle = events.firstObject.activity.identifier;
-            activitiesDictionary[activityTitle] = events;
+        if (_isSorted) {
+            
+            NSMutableDictionary *activitiesDictionary = [NSMutableDictionary new];
+            for (NSArray<OCKCarePlanEvent *> *events in groupedEventsArray) {
+                NSString *activityTitle = events.firstObject.activity.title;
+                activitiesDictionary[activityTitle] = events;
+            }
+            
+            NSArray *sortedActivitiesKeys = [activitiesDictionary.allKeys sortedArrayUsingSelector:@selector(compare:)];
+            for (NSString *activityKey in sortedActivitiesKeys) {
+                [groupArray addObject:activitiesDictionary[activityKey]];
+            }
+            [array addObject:groupArray];
+            
+        } else {
+            
+            [array addObject:[groupedEventsArray mutableCopy]];
+            
         }
-        
-        NSArray *sortedActivitiesKeys = [activitiesDictionary.allKeys sortedArrayUsingSelector:@selector(compare:)];
-        for (NSString *activityKey in sortedActivitiesKeys) {
-            [groupArray addObject:activitiesDictionary[activityKey]];
-        }
-        [array addObject:groupArray];
     }
     _tableViewData = [array mutableCopy];
 }
@@ -580,6 +704,11 @@
     self.selectedDate = selectedDate;
 }
 
+- (BOOL)weekViewCanSelectDayAtIndex:(NSUInteger)index {
+    NSDateComponents *today = [self today];
+    NSDateComponents *selectedDate = [self dateFromSelectedIndex:index];
+    return ![selectedDate isLaterThan:today];
+}
 
 #pragma mark - OCKCarePlanStoreDelegate
 

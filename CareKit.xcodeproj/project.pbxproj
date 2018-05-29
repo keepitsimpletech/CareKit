@@ -930,6 +930,7 @@
 				BA3793EC1EB66D7D0004A540 /* OCKPatientWidget_Internal.h in Headers */,
 				248929751C90E70100EBBE1F /* OCKConnectDetailViewController.h in Headers */,
 				BA8A8CA01D9DAC680078C5EA /* OCKWeekView.h in Headers */,
+				242DBA901C9F7F8700529386 /* OCKSymptomTrackerTableViewCell.h in Headers */,
 				BA274F421EB6F75300DD17EF /* OCKConnectMessageTableViewCell.h in Headers */,
 				248929801C90E70100EBBE1F /* OCKContact.h in Headers */,
 				8677EE1E1C9775EB00588CD6 /* OCKCareSchedule_Private.h in Headers */,

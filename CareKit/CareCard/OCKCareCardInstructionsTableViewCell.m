@@ -35,8 +35,8 @@
 
 static const CGFloat TopMargin = 15.0;
 static const CGFloat BottomMargin = 15.0;
-static const CGFloat LeadingMargin = 20.0;
-static const CGFloat TrailingMargin = 20.0;
+//static const CGFloat LeadingMargin = 20.0;
+//static const CGFloat TrailingMargin = 20.0;
 
 @implementation OCKCareCardInstructionsTableViewCell {
     OCKLabel *_textLabel;
@@ -62,7 +62,7 @@ static const CGFloat TrailingMargin = 20.0;
         _textLabel.textStyle = UIFontTextStyleBody;
         _textLabel.numberOfLines = 0;
         _textLabel.lineBreakMode = NSLineBreakByWordWrapping;
-        [self addSubview:_textLabel];
+        [self.contentView addSubview:_textLabel];
     }
     
     [self setUpConstraints];
@@ -83,28 +83,28 @@ static const CGFloat TrailingMargin = 20.0;
                                         [NSLayoutConstraint constraintWithItem:_textLabel
                                                                      attribute:NSLayoutAttributeLeading
                                                                      relatedBy:NSLayoutRelationEqual
-                                                                        toItem:self
+                                                                        toItem:self.contentView.layoutMarginsGuide
                                                                      attribute:NSLayoutAttributeLeading
                                                                     multiplier:1.0
-                                                                      constant:LeadingMargin],
+                                                                      constant:0],
                                         [NSLayoutConstraint constraintWithItem:_textLabel
                                                                      attribute:NSLayoutAttributeTrailing
                                                                      relatedBy:NSLayoutRelationEqual
-                                                                        toItem:self
+                                                                        toItem:self.contentView.layoutMarginsGuide
                                                                      attribute:NSLayoutAttributeTrailing
                                                                     multiplier:1.0
-                                                                      constant:-TrailingMargin],
+                                                                      constant:0],
                                         [NSLayoutConstraint constraintWithItem:_textLabel
                                                                      attribute:NSLayoutAttributeTop
                                                                      relatedBy:NSLayoutRelationEqual
-                                                                        toItem:self
+                                                                        toItem:self.contentView
                                                                      attribute:NSLayoutAttributeTop
                                                                     multiplier:1.0
                                                                       constant:TopMargin],
                                         [NSLayoutConstraint constraintWithItem:_textLabel
                                                                      attribute:NSLayoutAttributeBottom
                                                                      relatedBy:NSLayoutRelationEqual
-                                                                        toItem:self
+                                                                        toItem:self.contentView
                                                                      attribute:NSLayoutAttributeBottom
                                                                     multiplier:1.0
                                                                       constant:-BottomMargin],

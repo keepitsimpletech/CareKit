@@ -100,13 +100,14 @@ static const CGFloat LetterHeight = 11.0f;
 @end
 
 
-@interface OCKHTMLPDFWriter () <UIWebViewDelegate> {
+//@interface OCKHTMLPDFWriter () <UIWebViewDelegate> {
+@interface OCKHTMLPDFWriter () {
     id _selfRetain;
 }
 
 @property (nonatomic) CGSize pageSize;
 @property (nonatomic) UIEdgeInsets pageMargins;
-@property (nonatomic, strong) UIWebView *webView;
+//@property (nonatomic, strong) UIWebView *webView;
 @property (nonatomic, strong) NSData *data;
 @property (nonatomic, copy) NSError *error;
 @property (nonatomic, copy) void (^completionBlock)(NSData *data, NSError *error);
@@ -123,20 +124,22 @@ static const CGFloat FooterHeight = 25.0;
 static const CGFloat PageEdge = 72.0 / 4;
 
 - (void)writePDFFromHTML:(NSString *)html header:(NSString *)header withCompletionBlock:(void (^)(NSData *data, NSError *error))completionBlock {
+    //TODO: Fix me:
+    return;
     
-    _pageMargins = UIEdgeInsetsMake(PageEdge, PageEdge, PageEdge, PageEdge);
-    _pageSize = [OCKHTMLPDFWriter defaultPageSize];
-    
-    _data = nil;
-    _error = nil;
-    _header = header;
-    
-    self.webView = [[UIWebView alloc] init];
-    self.webView.delegate = self;
-    [self.webView loadHTMLString:html baseURL:OCKCreateRandomBaseURL()];
-    
-    _selfRetain = self;
-    self.completionBlock = completionBlock;
+//    _pageMargins = UIEdgeInsetsMake(PageEdge, PageEdge, PageEdge, PageEdge);
+//    _pageSize = [OCKHTMLPDFWriter defaultPageSize];
+//
+//    _data = nil;
+//    _error = nil;
+//    _header = header;
+//
+//    self.webView = [[UIWebView alloc] init];
+//    self.webView.delegate = self;
+//    [self.webView loadHTMLString:html baseURL:OCKCreateRandomBaseURL()];
+//
+//    _selfRetain = self;
+//    self.completionBlock = completionBlock;
 }
 
 #pragma mark - private
@@ -146,44 +149,45 @@ static const CGFloat PageEdge = 72.0 / 4;
 }
 
 - (void)savePDF {
-    if (!self.webView) {
-        return;
-    }
-    
-    UIPrintFormatter *formatter = self.webView.viewPrintFormatter;
-    
-    OCKHTMLPDFPageRenderer *renderer = [[OCKHTMLPDFPageRenderer alloc] init];
-    renderer.header = _header;
-    renderer.pageMargins = self.pageMargins;
-    renderer.footerHeight = FooterHeight;
-    renderer.headerHeight = HeaderHeight;
-    
-    [renderer addPrintFormatter:formatter startingAtPageAtIndex:0];
-    
-    NSMutableData *currentReportData = [NSMutableData data];
-    
-    CGSize pageSize = [self pageSize];
-    CGRect pageRect = CGRectMake(0, 0, pageSize.width, pageSize.height);
-    
-    UIGraphicsBeginPDFContextToData(currentReportData, pageRect, @{});
-    
-    [renderer prepareForDrawingPages:NSMakeRange(0, 1)];
-    
-    NSInteger pages = [renderer numberOfPages];
-    
-    for (NSInteger i = 0; i < pages; i++) {
-        UIGraphicsBeginPDFPage();
-        [renderer drawPageAtIndex:i inRect:renderer.printableRect];
-    }
-    
-    UIGraphicsEndPDFContext();
-    
-    _data = currentReportData;
-    
-    self.webView = nil;
-    
-    self.completionBlock(_data, nil);
-    _selfRetain = nil;
+    return;
+//    if (!self.webView) {
+//        return;
+//    }
+//
+//    UIPrintFormatter *formatter = self.webView.viewPrintFormatter;
+//
+//    OCKHTMLPDFPageRenderer *renderer = [[OCKHTMLPDFPageRenderer alloc] init];
+//    renderer.header = _header;
+//    renderer.pageMargins = self.pageMargins;
+//    renderer.footerHeight = FooterHeight;
+//    renderer.headerHeight = HeaderHeight;
+//
+//    [renderer addPrintFormatter:formatter startingAtPageAtIndex:0];
+//
+//    NSMutableData *currentReportData = [NSMutableData data];
+//
+//    CGSize pageSize = [self pageSize];
+//    CGRect pageRect = CGRectMake(0, 0, pageSize.width, pageSize.height);
+//
+//    UIGraphicsBeginPDFContextToData(currentReportData, pageRect, @{});
+//
+//    [renderer prepareForDrawingPages:NSMakeRange(0, 1)];
+//
+//    NSInteger pages = [renderer numberOfPages];
+//
+//    for (NSInteger i = 0; i < pages; i++) {
+//        UIGraphicsBeginPDFPage();
+//        [renderer drawPageAtIndex:i inRect:renderer.printableRect];
+//    }
+//
+//    UIGraphicsEndPDFContext();
+//
+//    _data = currentReportData;
+//
+//    self.webView = nil;
+//
+//    self.completionBlock(_data, nil);
+//    _selfRetain = nil;
 }
 
 + (CGSize)defaultPageSize {
@@ -194,29 +198,29 @@ static const CGFloat PageEdge = 72.0 / 4;
     return pageSize;
 }
 
-#pragma mark - UIWebViewDelegate
-
-- (void)webViewDidFinishLoad:(UIWebView *)webView {
-    NSString *readyState = [webView stringByEvaluatingJavaScriptFromString:@"document.readyState"];
-    BOOL complete = [readyState isEqualToString:@"complete"];
-    
-    [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeout) object:nil];
-    
-    if (complete) {
-        [self savePDF];
-    } else {
-        [self performSelector:@selector(timeout) withObject:nil afterDelay:1.0f];
-    }
-}
-
-- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
-    [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeout) object:nil];
-    
-    _error = error;
-    self.webView = nil;
-    
-    self.completionBlock(nil, error);
-    _selfRetain = nil;
-}
+//#pragma mark - UIWebViewDelegate
+//
+//- (void)webViewDidFinishLoad:(UIWebView *)webView {
+//    NSString *readyState = [webView stringByEvaluatingJavaScriptFromString:@"document.readyState"];
+//    BOOL complete = [readyState isEqualToString:@"complete"];
+//    
+//    [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeout) object:nil];
+//    
+//    if (complete) {
+//        [self savePDF];
+//    } else {
+//        [self performSelector:@selector(timeout) withObject:nil afterDelay:1.0f];
+//    }
+//}
+//
+//- (void)webView:(UIWebView *)webView didFailLoadWithError:(NSError *)error {
+//    [[self class] cancelPreviousPerformRequestsWithTarget:self selector:@selector(timeout) object:nil];
+//    
+//    _error = error;
+//    self.webView = nil;
+//    
+//    self.completionBlock(nil, error);
+//    _selfRetain = nil;
+//}
 
 @end
